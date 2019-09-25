@@ -1,0 +1,15 @@
+{
+  "extends": [
+    "react-app",
+    "prettier",
+    "prettier/react",
+    "airbnb"
+  ],
+  "plugins": [
+    "prettier",
+    "react",
+    "react-hooks",
+    "import",
+    "jsx-a11y"
+  ]
+}
