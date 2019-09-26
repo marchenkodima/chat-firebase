@@ -16,20 +16,50 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-const createUser = async (email, password) => {
+const signUpUser = async (email, password, name) => {
   let error = null;
-  await firebase.auth().createUserWithEmailAndPassword(email, password)
-    .catch((e) => { error = e; });
+  await firebase
+    .auth()
+    .createUserWithEmailAndPassword(email, password)
+    .catch((e) => {
+      error = e;
+    });
   if (error) throw new Error(error.message);
   const data = {
     avatar: '',
     chats: [],
-    name: '',
+    name,
     online: true,
   };
-  db.collection('users').doc(firebase.auth().currentUser.uid).set(data);
+  db.collection('users')
+    .doc(firebase.auth().currentUser.uid)
+    .set(data);
+};
+
+const signInUser = async (email, password) => {
+  let error = null;
+  await firebase
+    .auth()
+    .signInWithEmailAndPassword(email, password)
+    .catch((e) => {
+      error = e;
+    });
+  if (error) throw new Error(error.message);
+};
+
+const signOutUser = async () => {
+  let error = null;
+  await firebase
+    .auth()
+    .signOut()
+    .catch((e) => {
+      error = e;
+    });
+  if (error) throw new Error(error.message);
 };
 
 export default {
-  createUser,
+  signUpUser,
+  signInUser,
+  signOutUser,
 };

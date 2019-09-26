@@ -1,24 +1,18 @@
-import { all, take, put } from 'redux-saga/effects';
+import {
+  all, take, put, call, fork, cancel,
+} from 'redux-saga/effects';
 import chatService from '../../services/chat-service';
 import actionTypes from '../actions/action-types';
 import actions from '../actions/actions';
 
-function* createUser() {
+function* signUpUser() {
   while (true) {
-    let email;
-    let password;
-
-    yield take((action) => {
-      if (action.type === actionTypes.CREATE_USER) {
-        email = action.payload.email;
-        password = action.payload.password;
-        return true;
-      }
-      return false;
-    });
+    const {
+      payload: { email, password, name },
+    } = yield take(actionTypes.SIGN_UP_USER);
     yield put(actions.authUserRequest());
     try {
-      yield chatService.createUser(email, password);
+      yield call(chatService.signUpUser, email, password, name);
       yield put(actions.authUserSuccess());
     } catch (e) {
       yield put(actions.authUserFail(e));
@@ -26,8 +20,33 @@ function* createUser() {
   }
 }
 
+function* authorize(email, password) {
+  yield put(actions.authUserRequest());
+  try {
+    yield call(chatService.signInUser, email, password);
+    yield put(actions.authUserSuccess());
+  } catch (e) {
+    yield put(actions.authUserFail(e));
+  }
+}
+
+function* loginFlow() {
+  while (true) {
+    const {
+      payload: { email, password },
+    } = yield take(actionTypes.SIGN_IN_USER);
+    const task = yield fork(authorize, email, password);
+    const action = yield take([
+      actionTypes.AUTH_USER_FAILURE,
+      actionTypes.SIGN_OUT_USER,
+    ]);
+    if (action.type === actionTypes.SIGN_OUT_USER) {
+      yield cancel(task);
+    }
+    yield call(chatService.signOutUser);
+  }
+}
+
 export default function* rootSaga() {
-  yield all([
-    createUser(),
-  ]);
+  yield all([signUpUser(), loginFlow()]);
 }

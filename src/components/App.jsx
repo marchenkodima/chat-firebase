@@ -1,22 +1,12 @@
-import React, { useEffect } from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import actions from '../store/actions/actions';
+import React from 'react';
+import Authorize from './authorize';
 
-function App({ createUser }) {
-  useEffect(() => {
-    createUser();
-  });
-
-  return <div className="App">Hello</div>;
+function App() {
+  return (
+    <div className="App">
+      <Authorize login={false} />
+    </div>
+  );
 }
 
-App.propTypes = {
-  createUser: PropTypes.func.isRequired,
-};
-
-const mapDispatchToProps = (dispatch) => ({
-  createUser: () => dispatch(actions.createUser('abssssscde@gmail.com', '123456')),
-});
-
-export default connect(null, mapDispatchToProps)(App);
+export default App;

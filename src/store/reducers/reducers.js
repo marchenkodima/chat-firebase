@@ -1,16 +1,6 @@
-import actionTypes from '../actions/action-types';
+import { combineReducers } from 'redux';
+import authorizeReducer from './authorize-reducer';
 
-const initialState = {
-  user: '',
-};
-
-const rootReducer = (state = initialState, action) => {
-  switch (action.type) {
-    case actionTypes.AUTH_USER_REQUESTED:
-    case actionTypes.AUTH_USER_SUCCEED:
-    case actionTypes.AUTH_USER_FAILURE:
-    default: return state;
-  }
-};
+const rootReducer = combineReducers({ authorize: authorizeReducer });
 
 export default rootReducer;

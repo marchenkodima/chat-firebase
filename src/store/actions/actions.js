@@ -1,10 +1,11 @@
 import actionTypes from './action-types';
 
-const createUser = (email, password) => ({
-  type: actionTypes.CREATE_USER,
+const signUpUser = (email, password, name) => ({
+  type: actionTypes.SIGN_UP_USER,
   payload: {
     email,
     password,
+    name,
   },
 });
 
@@ -21,9 +22,27 @@ const authUserSuccess = () => ({
   type: actionTypes.AUTH_USER_SUCCEED,
 });
 
+const authInputChange = (inputName, value) => ({
+  type: actionTypes.AUTH_INPUT_CHANGED,
+  payload: {
+    inputName,
+    [inputName]: value,
+  },
+});
+
+const signInUser = (email, password) => ({
+  type: actionTypes.SIGN_IN_USER,
+  payload: {
+    email,
+    password,
+  },
+});
+
 export default {
-  createUser,
+  signUpUser,
   authUserRequest,
   authUserFail,
   authUserSuccess,
+  authInputChange,
+  signInUser,
 };
