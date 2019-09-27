@@ -1,14 +1,5 @@
 import actionTypes from './action-types';
 
-const signUpUser = (email, password, name) => ({
-  type: actionTypes.SIGN_UP_USER,
-  payload: {
-    email,
-    password,
-    name,
-  },
-});
-
 const authUserRequest = () => ({
   type: actionTypes.AUTH_USER_REQUESTED,
 });
@@ -18,8 +9,9 @@ const authUserFail = (error) => ({
   error,
 });
 
-const authUserSuccess = () => ({
+const authUserSuccess = (userId) => ({
   type: actionTypes.AUTH_USER_SUCCEED,
+  payload: userId,
 });
 
 const authInputChange = (inputName, value) => ({
@@ -27,6 +19,15 @@ const authInputChange = (inputName, value) => ({
   payload: {
     inputName,
     [inputName]: value,
+  },
+});
+
+const signUpUser = (email, password, name) => ({
+  type: actionTypes.SIGN_UP_USER,
+  payload: {
+    email,
+    password,
+    name,
   },
 });
 
@@ -38,6 +39,20 @@ const signInUser = (email, password) => ({
   },
 });
 
+const userDataRequest = () => ({
+  type: actionTypes.USER_DATA_REQUESTED,
+});
+
+const userDataSuccess = (data) => ({
+  type: actionTypes.USER_DATA_SUCCEED,
+  payload: data,
+});
+
+const userDataFailure = (error) => ({
+  type: actionTypes.USER_DATA_FAILURE,
+  error,
+});
+
 export default {
   signUpUser,
   authUserRequest,
@@ -45,4 +60,7 @@ export default {
   authUserSuccess,
   authInputChange,
   signInUser,
+  userDataRequest,
+  userDataSuccess,
+  userDataFailure,
 };

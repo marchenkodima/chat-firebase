@@ -31,9 +31,10 @@ const signUpUser = async (email, password, name) => {
     name,
     online: true,
   };
-  db.collection('users')
+  await db.collection('users')
     .doc(firebase.auth().currentUser.uid)
     .set(data);
+  return firebase.auth().currentUser.uid;
 };
 
 const signInUser = async (email, password) => {
@@ -45,6 +46,7 @@ const signInUser = async (email, password) => {
       error = e;
     });
   if (error) throw new Error(error.message);
+  return firebase.auth().currentUser.uid;
 };
 
 const signOutUser = async () => {
@@ -58,8 +60,55 @@ const signOutUser = async () => {
   if (error) throw new Error(error.message);
 };
 
+const getLatestMessage = async (chatId) => {
+  let error = null;
+  const messagesRef = db.collection('chats').doc(chatId).collection('messages');
+  const messagesSnapshot = await messagesRef.orderBy('time')
+    .limit(1)
+    .get()
+    .catch((e) => {
+      error = e;
+    });
+  if (error) throw new Error(error.message);
+  return messagesSnapshot.docs[0].data();
+};
+
+const getChatName = async (chatId) => {
+  let error = null;
+  const doc = await db.collection('chats')
+    .doc(chatId)
+    .get()
+    .catch((e) => {
+      error = e;
+    });
+  if (error) throw new Error(error.message);
+  return doc.data().name;
+};
+
+const getUserData = async () => {
+  let error = null;
+  const doc = await db.collection('users')
+    .doc(firebase.auth().currentUser.uid)
+    .get()
+    .catch((e) => {
+      error = e;
+    });
+  if (error) throw new Error(error.message);
+  const chatsId = doc.data().chats;
+  const chats = chatsId.map(async (chatId) => ({
+    name: await getChatName(chatId),
+    latestMessage: await getLatestMessage(chatId),
+    chatId,
+  }));
+  return {
+    ...doc.data(),
+    chats: await Promise.all(chats),
+  };
+};
+
 export default {
   signUpUser,
   signInUser,
   signOutUser,
+  getUserData,
 };

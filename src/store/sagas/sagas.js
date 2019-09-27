@@ -12,8 +12,8 @@ function* signUpUser() {
     } = yield take(actionTypes.SIGN_UP_USER);
     yield put(actions.authUserRequest());
     try {
-      yield call(chatService.signUpUser, email, password, name);
-      yield put(actions.authUserSuccess());
+      const userId = yield call(chatService.signUpUser, email, password, name);
+      yield put(actions.authUserSuccess(userId));
     } catch (e) {
       yield put(actions.authUserFail(e));
     }
@@ -23,8 +23,8 @@ function* signUpUser() {
 function* authorize(email, password) {
   yield put(actions.authUserRequest());
   try {
-    yield call(chatService.signInUser, email, password);
-    yield put(actions.authUserSuccess());
+    const userId = yield call(chatService.signInUser, email, password);
+    yield put(actions.authUserSuccess(userId));
   } catch (e) {
     yield put(actions.authUserFail(e));
   }
@@ -47,6 +47,18 @@ function* loginFlow() {
   }
 }
 
+function* getUserInfo() {
+  while (true) {
+    yield take(actionTypes.USER_DATA_REQUESTED);
+    try {
+      const data = yield call(chatService.getUserData);
+      yield put(actions.userDataSuccess(data));
+    } catch (e) {
+      yield put(actions.userDataFailure(e));
+    }
+  }
+}
+
 export default function* rootSaga() {
-  yield all([signUpUser(), loginFlow()]);
+  yield all([signUpUser(), loginFlow(), getUserInfo()]);
 }
