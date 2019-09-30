@@ -1,6 +1,12 @@
 import {
-  all, take, put, call, fork, cancel,
+  all,
+  take,
+  put,
+  call,
+  fork,
+  cancel,
 } from 'redux-saga/effects';
+import { eventChannel } from 'redux-saga';
 import chatService from '../../services/chat-service';
 import actionTypes from '../actions/action-types';
 import actions from '../actions/actions';
@@ -59,6 +65,66 @@ function* getUserInfo() {
   }
 }
 
+function* getChatsList() {
+  while (true) {
+    yield take(actionTypes.USER_CHATS_REQUESTED);
+    try {
+      const data = yield call(chatService.getChatsList);
+      yield put(actions.chatsListSuccess(data));
+    } catch (e) {
+      yield put(actions.chatsListFailure(e));
+    }
+  }
+}
+
+function createChatsListChannel(socket) {
+  return eventChannel((emit) => {
+    const updateHandler = (payload) => {
+      emit(payload);
+    };
+
+    socket.on(updateHandler);
+
+    return () => {};
+  });
+}
+
+function* watchOnLatestMessage(chatId) {
+  const socket = yield call(chatService.subscribeToLatestMessageChange, chatId);
+  const socketChannel = yield call(createChatsListChannel, socket);
+
+  while (true) {
+    const payload = yield take(socketChannel);
+    yield put(actions.chatsListUpdate(payload));
+  }
+}
+
+function* subscribeToChatsListUpdates() {
+  const { payload: chats } = yield take(actionTypes.USER_CHATS_SUCCEED);
+  for (let i = 0; i < chats.length; i += 1) {
+    yield call(watchOnLatestMessage, chats[i].chatId);
+  }
+}
+
+function* getChatData() {
+  while (true) {
+    const { payload: chatId } = yield take(actionTypes.CHAT_DATA_REQUESTED);
+    try {
+      const data = yield call(chatService.getChatData, chatId);
+      yield put(actions.chatDataSuccess(data));
+    } catch (e) {
+      yield put(actions.chatDataFailure(e));
+    }
+  }
+}
+
 export default function* rootSaga() {
-  yield all([signUpUser(), loginFlow(), getUserInfo()]);
+  yield all([
+    signUpUser(),
+    loginFlow(),
+    getUserInfo(),
+    getChatData(),
+    getChatsList(),
+    subscribeToChatsListUpdates(),
+  ]);
 }

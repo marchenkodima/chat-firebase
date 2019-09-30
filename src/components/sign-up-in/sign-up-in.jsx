@@ -29,9 +29,7 @@ const SignUpIn = ({ inputHandler, signUpIn, signUp = false }) => {
         name="password"
         onChange={inputHandler}
       />
-      <button type="submit">
-        {signUp ? 'Register' : 'Login'}
-      </button>
+      <button type="submit">{signUp ? 'Register' : 'Login'}</button>
     </form>
   );
 };

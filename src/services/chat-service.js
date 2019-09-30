@@ -31,7 +31,8 @@ const signUpUser = async (email, password, name) => {
     name,
     online: true,
   };
-  await db.collection('users')
+  await db
+    .collection('users')
     .doc(firebase.auth().currentUser.uid)
     .set(data);
   return firebase.auth().currentUser.uid;
@@ -62,8 +63,12 @@ const signOutUser = async () => {
 
 const getLatestMessage = async (chatId) => {
   let error = null;
-  const messagesRef = db.collection('chats').doc(chatId).collection('messages');
-  const messagesSnapshot = await messagesRef.orderBy('time')
+  const messagesRef = db
+    .collection('chats')
+    .doc(chatId)
+    .collection('messages');
+  const messagesSnapshot = await messagesRef
+    .orderBy('time', 'desc')
     .limit(1)
     .get()
     .catch((e) => {
@@ -75,7 +80,8 @@ const getLatestMessage = async (chatId) => {
 
 const getChatName = async (chatId) => {
   let error = null;
-  const doc = await db.collection('chats')
+  const doc = await db
+    .collection('chats')
     .doc(chatId)
     .get()
     .catch((e) => {
@@ -87,22 +93,115 @@ const getChatName = async (chatId) => {
 
 const getUserData = async () => {
   let error = null;
-  const doc = await db.collection('users')
+  const doc = await db
+    .collection('users')
     .doc(firebase.auth().currentUser.uid)
     .get()
     .catch((e) => {
       error = e;
     });
   if (error) throw new Error(error.message);
-  const chatsId = doc.data().chats;
-  const chats = chatsId.map(async (chatId) => ({
-    name: await getChatName(chatId),
-    latestMessage: await getLatestMessage(chatId),
-    chatId,
-  }));
+  const { avatar, name, online } = doc.data();
   return {
+    avatar,
+    name,
+    online,
+  };
+};
+
+const getChatsList = async () => {
+  let error = null;
+  const doc = await db
+    .collection('users')
+    .doc(firebase.auth().currentUser.uid)
+    .get()
+    .catch((e) => {
+      error = e;
+    });
+  if (error) throw new Error(error.message);
+  const chatsArray = doc.data().chats;
+  const chats = chatsArray.map(async (chat) => ({
+    name: await getChatName(chat.id),
+    latestMessage: await getLatestMessage(chat.id),
+    read: chat.read,
+    chatId: chat.id,
+  }));
+  const chatsData = await Promise.all(chats);
+
+  return chatsData.sort(
+    (chat1, chat2) => chat1.latestMessage.time.seconds - chat2.latestMessage.time.seconds,
+  );
+};
+
+const getChatData = async (chatId) => {
+  let error = null;
+  const chatRef = db.collection('chats').doc(chatId);
+
+  const chatDoc = await chatRef.get().catch((e) => {
+    error = e;
+  });
+  const chatData = chatDoc.data();
+
+  if (error) throw new Error(error.message);
+
+  const messagesSnapshot = await chatRef
+    .collection('messages')
+    .orderBy('time')
+    .limit(50)
+    .get()
+    .catch((e) => {
+      error = e;
+    });
+  const messages = messagesSnapshot.docs.map((doc) => ({
     ...doc.data(),
-    chats: await Promise.all(chats),
+    id: doc.id,
+  }));
+
+  if (error) throw new Error(error.message);
+
+  const usersSnapshot = await chatRef
+    .collection('users')
+    .get()
+    .catch((e) => {
+      error = e;
+    });
+  const users = usersSnapshot.docs.map((doc) => doc.data());
+
+  if (error) throw new Error(error.message);
+
+  return {
+    ...chatData,
+    messages,
+    users,
+  };
+};
+
+const subscribeToLatestMessageChange = (chatId) => {
+  const messagesRef = db
+    .collection('chats')
+    .doc(chatId)
+    .collection('messages');
+
+  return {
+    on: (updateHandler) => {
+      let firstUpdate = true;
+      messagesRef.onSnapshot((messagesSnapshot) => {
+        if (firstUpdate) {
+          firstUpdate = false;
+        } else {
+          const messages = messagesSnapshot
+            .docChanges()
+            .map((changed) => changed.doc.data());
+          const latestMessage = messages.sort(
+            (msg1, msg2) => msg2.time.seconds - msg1.time.seconds,
+          )[0];
+          updateHandler({
+            latestMessage,
+            chatId,
+          });
+        }
+      });
+    },
   };
 };
 
@@ -111,4 +210,7 @@ export default {
   signInUser,
   signOutUser,
   getUserData,
+  getChatData,
+  getChatsList,
+  subscribeToLatestMessageChange,
 };

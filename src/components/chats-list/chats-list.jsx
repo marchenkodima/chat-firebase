@@ -1,7 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import actions from '../../store/actions/actions';
 
-const ChatsList = ({ chats }) => {
+const ChatsList = ({ chatsList, getChatData }) => {
   const time = (chat) => {
     const seconds = Date.now() / 1000 - chat.latestMessage.time.seconds;
     if (seconds < 30) {
@@ -11,26 +13,45 @@ const ChatsList = ({ chats }) => {
       return `${seconds} s`;
     }
     if (seconds < 3600) {
-      return `${seconds / 60} min`;
+      return `${Math.floor(seconds / 60)} min`;
     }
     if (seconds < 3600 * 24) {
-      return `${seconds / 3600} h`;
+      return `${Math.floor(seconds / 3600)} h`;
     }
     if (seconds < 3600 * 48) {
       return 'yesterday';
     }
     const date = new Date(chat.latestMessage.time.seconds * 1000);
-    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    const months = [
+      'jan',
+      'feb',
+      'mar',
+      'apr',
+      'may',
+      'jun',
+      'jul',
+      'aug',
+      'sep',
+      'oct',
+      'nov',
+      'dec',
+    ];
     return `${date.getDate()} ${months[date.getMonth()]}`;
   };
 
+  if (!chatsList) {
+    return null;
+  }
+
   return (
     <ul>
-      {chats.map((chat) => (
+      {chatsList.map((chat) => (
         <li key={chat.chatId}>
-          <p>{chat.name}</p>
-          <p>{chat.latestMessage.message}</p>
-          <p>{time(chat)}</p>
+          <button type="button" onClick={() => getChatData(chat.chatId)}>
+            <p>{chat.name}</p>
+            <p>{chat.latestMessage.message}</p>
+            <p>{time(chat)}</p>
+          </button>
         </li>
       ))}
     </ul>
@@ -38,7 +59,23 @@ const ChatsList = ({ chats }) => {
 };
 
 ChatsList.propTypes = {
-  chats: PropTypes.arrayOf(PropTypes.object).isRequired,
+  chatsList: PropTypes.arrayOf(PropTypes.object),
+  getChatData: PropTypes.func.isRequired,
 };
 
-export default ChatsList;
+ChatsList.defaultProps = {
+  chatsList: PropTypes.any,
+};
+
+const mapStateToProps = ({ chatsList: { chatsList } }) => ({
+  chatsList,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  getChatData: (chatId) => dispatch(actions.chatDataRequest(chatId)),
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(ChatsList);

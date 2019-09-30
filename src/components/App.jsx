@@ -7,7 +7,7 @@ import Chat from './chat';
 function App({ userId }) {
   return (
     <div className="App">
-      <Authorize login={false} />
+      {!userId.length ? <Authorize login={false} /> : null}
       {userId.length ? <Chat /> : null}
     </div>
   );
