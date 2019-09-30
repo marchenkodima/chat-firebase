@@ -2,7 +2,9 @@ import actionTypes from '../actions/action-types';
 
 const initialState = {
   userId: '',
-  chats: [],
+  avatar: '',
+  online: false,
+  name: '',
 };
 
 const userReducer = (state = initialState, action) => {
@@ -22,7 +24,7 @@ const userReducer = (state = initialState, action) => {
       return {
         ...state,
         loading: false,
-        chats: action.payload.chats,
+        ...action.payload,
       };
     case actionTypes.USER_DATA_FAILURE:
       return {
