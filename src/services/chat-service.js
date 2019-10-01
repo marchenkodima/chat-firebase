@@ -1,6 +1,7 @@
 import * as firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
+import 'firebase/database';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyB3NgIGuI59uj2Lk2tzlgdowxZfRQHl4Hk',
@@ -165,12 +166,13 @@ const getChatData = async (chatId) => {
     .catch((e) => {
       error = e;
     });
-  const users = usersSnapshot.docs.map((doc) => doc.data());
+  const users = usersSnapshot.docs.map((doc) => doc.id);
 
   if (error) throw new Error(error.message);
 
   return {
     ...chatData,
+    id: chatDoc.id,
     messages,
     users,
   };
@@ -205,6 +207,20 @@ const subscribeToLatestMessageChange = (chatId) => {
   };
 };
 
+const postMessage = async (message, chatId) => {
+  await db.collection('chats')
+    .doc(chatId)
+    .collection('messages')
+    .add({
+      document: '',
+      message,
+      read: false,
+      sender: firebase.auth().currentUser.uid,
+      time: firebase.firestore.Timestamp.now(),
+    })
+    .catch((e) => throw new Error(e));
+};
+
 export default {
   signUpUser,
   signInUser,
@@ -213,4 +229,5 @@ export default {
   getChatData,
   getChatsList,
   subscribeToLatestMessageChange,
+  postMessage,
 };

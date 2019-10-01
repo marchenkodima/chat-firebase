@@ -77,10 +77,26 @@ const chatsListUpdate = (payload) => ({
   type: actionTypes.CHATS_LIST_UPDATED,
   payload,
 });
-const chatsListSubscribe = (chatId) => ({
-  type: actionTypes.CHATS_LIST_SUBSCRIBED,
-  payload: chatId,
+
+const messageInputChange = (message) => ({
+  type: actionTypes.MESSAGE_INPUT_CHANGED,
+  payload: message,
 });
+const messageSendRequest = (message, chatId) => ({
+  type: actionTypes.MESSAGE_SEND_REQUESTED,
+  payload: {
+    message,
+    chatId,
+  },
+});
+const messageSendSuccess = () => ({
+  type: actionTypes.MESSAGE_SEND_SUCCEED,
+});
+const messageSendFailure = (error) => ({
+  type: actionTypes.MESSAGE_SEND_FAILED,
+  error,
+});
+
 
 export default {
   signUpUser,
@@ -99,5 +115,8 @@ export default {
   chatsListSuccess,
   chatsListFailure,
   chatsListUpdate,
-  chatsListSubscribe,
+  messageInputChange,
+  messageSendRequest,
+  messageSendSuccess,
+  messageSendFailure,
 };

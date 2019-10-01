@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import MessageInput from '../message-input';
 
 const ChatWindow = ({ chat }) => {
   if (!chat) {
@@ -22,9 +23,10 @@ const ChatWindow = ({ chat }) => {
       </ul>
       <ul>
         {users.map((user) => (
-          <li key={user.id}>{user.id}</li>
+          <li key={user}>{user}</li>
         ))}
       </ul>
+      <MessageInput />
     </div>
   );
 };
@@ -32,7 +34,7 @@ const ChatWindow = ({ chat }) => {
 ChatWindow.propTypes = {
   chat: PropTypes.shape({
     messages: PropTypes.arrayOf(PropTypes.object).isRequired,
-    users: PropTypes.arrayOf(PropTypes.object).isRequired,
+    users: PropTypes.arrayOf(PropTypes.string).isRequired,
     avatar: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
   }),

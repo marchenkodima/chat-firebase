@@ -118,6 +118,18 @@ function* getChatData() {
   }
 }
 
+function* postMessage() {
+  while (true) {
+    const { payload: { message, chatId } } = yield take(actionTypes.MESSAGE_SEND_REQUESTED);
+    try {
+      yield call(chatService.postMessage, message, chatId);
+      yield put(actions.messageSendSuccess());
+    } catch (e) {
+      yield put(actions.messageSendFailure(e));
+    }
+  }
+}
+
 export default function* rootSaga() {
   yield all([
     signUpUser(),
@@ -126,5 +138,6 @@ export default function* rootSaga() {
     getChatData(),
     getChatsList(),
     subscribeToChatsListUpdates(),
+    postMessage(),
   ]);
 }
