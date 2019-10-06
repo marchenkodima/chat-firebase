@@ -59,6 +59,10 @@ const chatsListFailure = (error) => ({
   type: actionTypes.USER_CHATS_FAILED,
   error,
 });
+const chatsListUpdate = (payload) => ({
+  type: actionTypes.CHATS_LIST_UPDATED,
+  payload,
+});
 
 const chatDataRequest = (chatId) => ({
   type: actionTypes.CHAT_DATA_REQUESTED,
@@ -71,11 +75,6 @@ const chatDataSuccess = (data) => ({
 const chatDataFailure = (error) => ({
   type: actionTypes.CHAT_DATA_FAILURE,
   error,
-});
-
-const chatsListUpdate = (payload) => ({
-  type: actionTypes.CHATS_LIST_UPDATED,
-  payload,
 });
 
 const messageInputChange = (message) => ({
@@ -97,6 +96,18 @@ const messageSendFailure = (error) => ({
   error,
 });
 
+const subscribeToMessagesUpdates = (chatId) => ({
+  type: actionTypes.MESSAGES_UPDATES_SUBSCRIBED,
+  payload: chatId,
+});
+const unsubscribeToMessagesUpdates = (chatId) => ({
+  type: actionTypes.MESSAGES_UPDATES_UNSUBSCRIBED,
+  payload: chatId,
+});
+const messagesUpdate = (payload) => ({
+  type: actionTypes.MESSAGES_UPDATED,
+  payload,
+});
 
 export default {
   signUpUser,
@@ -119,4 +130,7 @@ export default {
   messageSendRequest,
   messageSendSuccess,
   messageSendFailure,
+  subscribeToMessagesUpdates,
+  unsubscribeToMessagesUpdates,
+  messagesUpdate,
 };

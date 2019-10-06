@@ -8,7 +8,7 @@
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "react-redux": "^7.1.1",
-    "react-scripts": "3.1.2",
+    "react-scripts": "^3.1.2",
     "redux": "^4.0.4",
     "redux-saga": "^1.1.1"
   },
@@ -49,7 +49,6 @@
     ]
   },
   "devDependencies": {
-    "@babel/plugin-proposal-throw-expressions": "^7.2.0",
     "eslint": "^6.1.0",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-prettier": "^6.3.0",

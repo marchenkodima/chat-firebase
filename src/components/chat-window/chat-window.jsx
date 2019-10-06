@@ -37,6 +37,7 @@ ChatWindow.propTypes = {
     users: PropTypes.arrayOf(PropTypes.string).isRequired,
     avatar: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
+    id: PropTypes.string.isRequired,
   }),
 };
 
@@ -44,8 +45,8 @@ ChatWindow.defaultProps = {
   chat: PropTypes.any,
 };
 
-const mapStateToProps = ({ chat: { activeChat } }) => ({
-  chat: activeChat,
+const mapStateToProps = ({ chat: { currentChatId, chats } }) => ({
+  chat: chats && chats[currentChatId],
 });
 
 export default connect(mapStateToProps)(ChatWindow);

@@ -30,7 +30,7 @@ const chatsListReducer = (state = initialState, action) => {
       return {
         ...state,
         chatsList: state.chatsList.map((chat) => {
-          if (chat.chatId === action.payload.chatId) {
+          if (chat.id === action.payload.id) {
             return {
               ...chat,
               latestMessage: action.payload.latestMessage,

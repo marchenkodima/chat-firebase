@@ -5,23 +5,13 @@ import actions from '../../store/actions/actions';
 
 const ChatsList = ({ chatsList, getChatData }) => {
   const time = (chat) => {
-    const seconds = Date.now() / 1000 - chat.latestMessage.time.seconds;
-    if (seconds < 30) {
-      return 'now';
+    const milliseconds = chat.latestMessage.time.seconds * 1000;
+    const serverOffset = new Date(milliseconds).getTimezoneOffset() * 60000;
+    const localeOffset = new Date(Date.now()).getTimezoneOffset() * 60000;
+    const date = new Date(milliseconds + localeOffset - serverOffset);
+    if (Date.now() - (milliseconds - serverOffset) < 24 * 3600 * 1000) {
+      return `${date.getHours()}:${date.getMinutes()}`;
     }
-    if (seconds < 60) {
-      return `${seconds} s`;
-    }
-    if (seconds < 3600) {
-      return `${Math.floor(seconds / 60)} min`;
-    }
-    if (seconds < 3600 * 24) {
-      return `${Math.floor(seconds / 3600)} h`;
-    }
-    if (seconds < 3600 * 48) {
-      return 'yesterday';
-    }
-    const date = new Date(chat.latestMessage.time.seconds * 1000);
     const months = [
       'jan',
       'feb',
@@ -46,8 +36,8 @@ const ChatsList = ({ chatsList, getChatData }) => {
   return (
     <ul>
       {chatsList.map((chat) => (
-        <li key={chat.chatId}>
-          <button type="button" onClick={() => getChatData(chat.chatId)}>
+        <li key={chat.id}>
+          <button type="button" onClick={() => getChatData(chat.id)}>
             <p>{chat.name}</p>
             <p>{chat.latestMessage.message}</p>
             <p>{time(chat)}</p>

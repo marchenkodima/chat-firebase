@@ -17,6 +17,13 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+const getServerTime = () => firebase.database()
+  .ref('/.info/serverTimeOffset')
+  .once('value')
+  .then((date) => (
+    new firebase.firestore.Timestamp(Math.floor((date.val() + Date.now()) / 1000), 0)
+  ));
+
 const signUpUser = async (email, password, name) => {
   let error = null;
   await firebase
@@ -25,7 +32,9 @@ const signUpUser = async (email, password, name) => {
     .catch((e) => {
       error = e;
     });
+
   if (error) throw new Error(error.message);
+
   const data = {
     avatar: '',
     chats: [],
@@ -35,7 +44,13 @@ const signUpUser = async (email, password, name) => {
   await db
     .collection('users')
     .doc(firebase.auth().currentUser.uid)
-    .set(data);
+    .set(data)
+    .catch((e) => {
+      error = e;
+    });
+
+  if (error) throw new Error(error.message);
+
   return firebase.auth().currentUser.uid;
 };
 
@@ -119,15 +134,23 @@ const getChatsList = async () => {
     .catch((e) => {
       error = e;
     });
+
   if (error) throw new Error(error.message);
+
   const chatsArray = doc.data().chats;
   const chats = chatsArray.map(async (chat) => ({
     name: await getChatName(chat.id),
     latestMessage: await getLatestMessage(chat.id),
     read: chat.read,
-    chatId: chat.id,
+    id: chat.id,
   }));
-  const chatsData = await Promise.all(chats);
+  const chatsData = await Promise
+    .all(chats)
+    .catch((e) => {
+      error = e;
+    });
+
+  if (error) throw new Error(error.message);
 
   return chatsData.sort(
     (chat1, chat2) => chat1.latestMessage.time.seconds - chat2.latestMessage.time.seconds,
@@ -137,7 +160,6 @@ const getChatsList = async () => {
 const getChatData = async (chatId) => {
   let error = null;
   const chatRef = db.collection('chats').doc(chatId);
-
   const chatDoc = await chatRef.get().catch((e) => {
     error = e;
   });
@@ -199,7 +221,7 @@ const subscribeToLatestMessageChange = (chatId) => {
           )[0];
           updateHandler({
             latestMessage,
-            chatId,
+            id: chatId,
           });
         }
       });
@@ -208,6 +230,7 @@ const subscribeToLatestMessageChange = (chatId) => {
 };
 
 const postMessage = async (message, chatId) => {
+  let error = null;
   await db.collection('chats')
     .doc(chatId)
     .collection('messages')
@@ -216,9 +239,40 @@ const postMessage = async (message, chatId) => {
       message,
       read: false,
       sender: firebase.auth().currentUser.uid,
-      time: firebase.firestore.Timestamp.now(),
+      time: await getServerTime(),
     })
-    .catch((e) => throw new Error(e));
+    .catch((e) => { error = e; });
+  if (error) throw new Error(error.message);
+};
+
+const subscribeToMessagesChange = (chatId) => {
+  const messagesRef = db
+    .collection('chats')
+    .doc(chatId)
+    .collection('messages');
+
+  return {
+    on: (updateHandler) => {
+      let firstUpdate = true;
+      messagesRef.onSnapshot((messagesSnapshot) => {
+        if (firstUpdate) {
+          firstUpdate = false;
+        } else {
+          const messages = messagesSnapshot
+            .docChanges()
+            .map((changed) => ({
+              ...changed.doc.data(),
+              id: changed.doc.id,
+            }))
+            .sort((msg1, msg2) => msg2.time.seconds - msg1.time.seconds);
+          updateHandler({
+            messages,
+            id: chatId,
+          });
+        }
+      });
+    },
+  };
 };
 
 export default {
@@ -230,4 +284,5 @@ export default {
   getChatsList,
   subscribeToLatestMessageChange,
   postMessage,
+  subscribeToMessagesChange,
 };

@@ -30,8 +30,8 @@ MessageInput.propTypes = {
   chatId: PropTypes.string.isRequired,
 };
 
-const mapStateToProps = ({ chat: { activeChat: { id } }, message: { message } }) => ({
-  chatId: id,
+const mapStateToProps = ({ chat: { currentChatId }, message: { message } }) => ({
+  chatId: currentChatId,
   message,
 });
 
