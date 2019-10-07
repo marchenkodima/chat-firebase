@@ -2,8 +2,8 @@ import actionTypes from '../actions/action-types';
 
 const initialState = {
   currentChatId: '',
-  chats: null,
-  loading: false,
+  chats: [],
+  isLoaded: false,
   error: false,
 };
 
@@ -12,38 +12,24 @@ const chatReducer = (state = initialState, action) => {
     case actionTypes.CHAT_DATA_REQUESTED:
       return {
         ...state,
-        loading: true,
         error: false,
       };
     case actionTypes.CHAT_DATA_SUCCEED:
       return {
         ...state,
-        loading: false,
-        currentChatId: action.payload.id,
-        chats: {
-          ...state.chats,
-          [action.payload.id]: action.payload,
-        },
+        isLoaded: true,
+        chats: [...state.chats, action.payload],
       };
     case actionTypes.CHAT_DATA_FAILURE:
       return {
         ...state,
-        loading: false,
+        isLoaded: true,
         error: true,
       };
-    case actionTypes.MESSAGES_UPDATED:
+    case actionTypes.CURRENT_CHAT_CHANGED:
       return {
         ...state,
-        chats: {
-          ...state.chats,
-          [action.payload.id]: {
-            ...state.chats[action.payload.id],
-            messages: [
-              ...state.chats[action.payload.id].messages,
-              ...action.payload.messages,
-            ],
-          },
-        },
+        currentChatId: action.payload,
       };
     default:
       return state;

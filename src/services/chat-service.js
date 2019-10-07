@@ -17,23 +17,19 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-const getServerTime = () => firebase.database()
+const getServerTime = () => firebase
+  .database()
   .ref('/.info/serverTimeOffset')
   .once('value')
-  .then((date) => (
-    new firebase.firestore.Timestamp(Math.floor((date.val() + Date.now()) / 1000), 0)
-  ));
+  .then(
+    (date) => new firebase.firestore.Timestamp(
+      Math.floor((date.val() + Date.now()) / 1000),
+      0,
+    ),
+  );
 
 const signUpUser = async (email, password, name) => {
-  let error = null;
-  await firebase
-    .auth()
-    .createUserWithEmailAndPassword(email, password)
-    .catch((e) => {
-      error = e;
-    });
-
-  if (error) throw new Error(error.message);
+  await firebase.auth().createUserWithEmailAndPassword(email, password);
 
   const data = {
     avatar: '',
@@ -44,79 +40,26 @@ const signUpUser = async (email, password, name) => {
   await db
     .collection('users')
     .doc(firebase.auth().currentUser.uid)
-    .set(data)
-    .catch((e) => {
-      error = e;
-    });
-
-  if (error) throw new Error(error.message);
+    .set(data);
 
   return firebase.auth().currentUser.uid;
 };
 
 const signInUser = async (email, password) => {
-  let error = null;
-  await firebase
-    .auth()
-    .signInWithEmailAndPassword(email, password)
-    .catch((e) => {
-      error = e;
-    });
-  if (error) throw new Error(error.message);
+  await firebase.auth().signInWithEmailAndPassword(email, password);
+
   return firebase.auth().currentUser.uid;
 };
 
 const signOutUser = async () => {
-  let error = null;
-  await firebase
-    .auth()
-    .signOut()
-    .catch((e) => {
-      error = e;
-    });
-  if (error) throw new Error(error.message);
-};
-
-const getLatestMessage = async (chatId) => {
-  let error = null;
-  const messagesRef = db
-    .collection('chats')
-    .doc(chatId)
-    .collection('messages');
-  const messagesSnapshot = await messagesRef
-    .orderBy('time', 'desc')
-    .limit(1)
-    .get()
-    .catch((e) => {
-      error = e;
-    });
-  if (error) throw new Error(error.message);
-  return messagesSnapshot.docs[0].data();
-};
-
-const getChatName = async (chatId) => {
-  let error = null;
-  const doc = await db
-    .collection('chats')
-    .doc(chatId)
-    .get()
-    .catch((e) => {
-      error = e;
-    });
-  if (error) throw new Error(error.message);
-  return doc.data().name;
+  await firebase.auth().signOut();
 };
 
 const getUserData = async () => {
-  let error = null;
   const doc = await db
     .collection('users')
     .doc(firebase.auth().currentUser.uid)
-    .get()
-    .catch((e) => {
-      error = e;
-    });
-  if (error) throw new Error(error.message);
+    .get();
   const { avatar, name, online } = doc.data();
   return {
     avatar,
@@ -125,113 +68,35 @@ const getUserData = async () => {
   };
 };
 
-const getChatsList = async () => {
-  let error = null;
-  const doc = await db
-    .collection('users')
-    .doc(firebase.auth().currentUser.uid)
-    .get()
-    .catch((e) => {
-      error = e;
-    });
-
-  if (error) throw new Error(error.message);
-
-  const chatsArray = doc.data().chats;
-  const chats = chatsArray.map(async (chat) => ({
-    name: await getChatName(chat.id),
-    latestMessage: await getLatestMessage(chat.id),
-    read: chat.read,
-    id: chat.id,
-  }));
-  const chatsData = await Promise
-    .all(chats)
-    .catch((e) => {
-      error = e;
-    });
-
-  if (error) throw new Error(error.message);
-
-  return chatsData.sort(
-    (chat1, chat2) => chat1.latestMessage.time.seconds - chat2.latestMessage.time.seconds,
-  );
-};
+const getChatMembers = async (chatId) => (await db
+  .collection('chats')
+  .doc(chatId)
+  .collection('users')
+  .get()).docs.map((doc) => doc.id);
 
 const getChatData = async (chatId) => {
-  let error = null;
   const chatRef = db.collection('chats').doc(chatId);
-  const chatDoc = await chatRef.get().catch((e) => {
-    error = e;
-  });
-  const chatData = chatDoc.data();
 
-  if (error) throw new Error(error.message);
-
-  const messagesSnapshot = await chatRef
-    .collection('messages')
-    .orderBy('time')
-    .limit(50)
-    .get()
-    .catch((e) => {
-      error = e;
-    });
-  const messages = messagesSnapshot.docs.map((doc) => ({
-    ...doc.data(),
-    id: doc.id,
-  }));
-
-  if (error) throw new Error(error.message);
-
-  const usersSnapshot = await chatRef
-    .collection('users')
-    .get()
-    .catch((e) => {
-      error = e;
-    });
-  const users = usersSnapshot.docs.map((doc) => doc.id);
-
-  if (error) throw new Error(error.message);
+  const chatData = (await chatRef.get()).data();
+  const users = await getChatMembers(chatId);
 
   return {
     ...chatData,
-    id: chatDoc.id,
-    messages,
+    id: chatId,
     users,
   };
 };
 
-const subscribeToLatestMessageChange = (chatId) => {
-  const messagesRef = db
-    .collection('chats')
-    .doc(chatId)
-    .collection('messages');
-
-  return {
-    on: (updateHandler) => {
-      let firstUpdate = true;
-      messagesRef.onSnapshot((messagesSnapshot) => {
-        if (firstUpdate) {
-          firstUpdate = false;
-        } else {
-          const messages = messagesSnapshot
-            .docChanges()
-            .map((changed) => changed.doc.data());
-          const latestMessage = messages.sort(
-            (msg1, msg2) => msg2.time.seconds - msg1.time.seconds,
-          )[0];
-          updateHandler({
-            latestMessage,
-            id: chatId,
-          });
-        }
-      });
-    },
-  };
+const getChatsList = async () => {
+  const userChats = (await db
+    .collection('users')
+    .doc(firebase.auth().currentUser.uid)
+    .get()).data().chats;
+  return Promise.all(userChats.map((chat) => getChatData(chat.id)));
 };
 
 const postMessage = async (message, chatId) => {
-  let error = null;
-  await db.collection('chats')
+  db.collection('chats')
     .doc(chatId)
     .collection('messages')
     .add({
@@ -240,37 +105,52 @@ const postMessage = async (message, chatId) => {
       read: false,
       sender: firebase.auth().currentUser.uid,
       time: await getServerTime(),
-    })
-    .catch((e) => { error = e; });
-  if (error) throw new Error(error.message);
+    });
 };
 
-const subscribeToMessagesChange = (chatId) => {
+const loadMessages = (chatId) => {
   const messagesRef = db
     .collection('chats')
     .doc(chatId)
-    .collection('messages');
+    .collection('messages')
+    .orderBy('time', 'desc');
+
+  const query = messagesRef.limit(1);
+  let last = null;
 
   return {
-    on: (updateHandler) => {
-      let firstUpdate = true;
-      messagesRef.onSnapshot((messagesSnapshot) => {
-        if (firstUpdate) {
-          firstUpdate = false;
-        } else {
-          const messages = messagesSnapshot
-            .docChanges()
-            .map((changed) => ({
-              ...changed.doc.data(),
-              id: changed.doc.id,
-            }))
-            .sort((msg1, msg2) => msg2.time.seconds - msg1.time.seconds);
-          updateHandler({
-            messages,
-            id: chatId,
-          });
-        }
-      });
+    onChange: (callback, errorHandler) => {
+      query.onSnapshot((snapshot) => {
+        last = last || snapshot.docs[snapshot.docs.length - 1];
+        const messages = snapshot
+          .docChanges()
+          .filter((changed) => changed.type === 'added')
+          .map((changed) => ({
+            ...changed.doc.data(),
+            id: changed.doc.id,
+          }));
+        callback({
+          messages,
+          id: chatId,
+        });
+      }, errorHandler);
+    },
+    loadMore: async () => {
+      const { docs } = await messagesRef
+        .startAfter(last)
+        .limit(50)
+        .get();
+      last = docs[docs.length - 1];
+      const messages = docs
+        .map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }))
+        .reverse();
+      return {
+        messages,
+        id: chatId,
+      };
     },
   };
 };
@@ -281,8 +161,7 @@ export default {
   signOutUser,
   getUserData,
   getChatData,
-  getChatsList,
-  subscribeToLatestMessageChange,
   postMessage,
-  subscribeToMessagesChange,
+  loadMessages,
+  getChatsList,
 };

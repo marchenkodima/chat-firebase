@@ -30,7 +30,10 @@ MessageInput.propTypes = {
   chatId: PropTypes.string.isRequired,
 };
 
-const mapStateToProps = ({ chat: { currentChatId }, message: { message } }) => ({
+const mapStateToProps = ({
+  chat: { currentChatId },
+  messageInput: { message },
+}) => ({
   chatId: currentChatId,
   message,
 });
@@ -40,4 +43,7 @@ const mapDispatchToProps = (dispatch) => ({
   messageHandler: (message, chatId) => dispatch(actions.messageSendRequest(message, chatId)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(MessageInput);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(MessageInput);

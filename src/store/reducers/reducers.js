@@ -2,15 +2,15 @@ import { combineReducers } from 'redux';
 import authorizeReducer from './authorize-reducer';
 import userReducer from './user-reducer';
 import chatReducer from './chat-reducer';
-import chatsListReducer from './chats-list-reducer';
-import messageReducer from './message-reudcer';
+import messagesReducer from './messages-reducer';
+import messageInputReducer from './message-input-reducer';
 
 const rootReducer = combineReducers({
   authorize: authorizeReducer,
   user: userReducer,
   chat: chatReducer,
-  chatsList: chatsListReducer,
-  message: messageReducer,
+  messageInput: messageInputReducer,
+  messages: messagesReducer,
 });
 
 export default rootReducer;

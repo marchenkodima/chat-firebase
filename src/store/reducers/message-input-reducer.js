@@ -5,7 +5,7 @@ const initialState = {
   error: false,
 };
 
-const messageReducer = (state = initialState, action) => {
+const messageInputReducer = (state = initialState, action) => {
   switch (action.type) {
     case actionTypes.MESSAGE_INPUT_CHANGED:
       return {
@@ -22,4 +22,4 @@ const messageReducer = (state = initialState, action) => {
   }
 };
 
-export default messageReducer;
+export default messageInputReducer;

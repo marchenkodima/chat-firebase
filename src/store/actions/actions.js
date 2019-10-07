@@ -48,25 +48,8 @@ const userDataFailure = (error) => ({
   error,
 });
 
-const chatsListRequest = () => ({
-  type: actionTypes.USER_CHATS_REQUESTED,
-});
-const chatsListSuccess = (data) => ({
-  type: actionTypes.USER_CHATS_SUCCEED,
-  payload: data,
-});
-const chatsListFailure = (error) => ({
-  type: actionTypes.USER_CHATS_FAILED,
-  error,
-});
-const chatsListUpdate = (payload) => ({
-  type: actionTypes.CHATS_LIST_UPDATED,
-  payload,
-});
-
-const chatDataRequest = (chatId) => ({
+const chatDataRequest = () => ({
   type: actionTypes.CHAT_DATA_REQUESTED,
-  payload: chatId,
 });
 const chatDataSuccess = (data) => ({
   type: actionTypes.CHAT_DATA_SUCCEED,
@@ -96,17 +79,22 @@ const messageSendFailure = (error) => ({
   error,
 });
 
-const subscribeToMessagesUpdates = (chatId) => ({
-  type: actionTypes.MESSAGES_UPDATES_SUBSCRIBED,
-  payload: chatId,
-});
-const unsubscribeToMessagesUpdates = (chatId) => ({
-  type: actionTypes.MESSAGES_UPDATES_UNSUBSCRIBED,
-  payload: chatId,
-});
-const messagesUpdate = (payload) => ({
+const messagesUpdate = (messages) => ({
   type: actionTypes.MESSAGES_UPDATED,
-  payload,
+  payload: messages,
+});
+const moreMessagesRequest = (chatId) => ({
+  type: actionTypes.MORE_MESSAGES_REQUESTED,
+  payload: chatId,
+});
+const moreMessagesSuccess = (messages) => ({
+  type: actionTypes.MORE_MESSAGES_SUCCEED,
+  payload: messages,
+});
+
+const currentChatChange = (chatId) => ({
+  type: actionTypes.CURRENT_CHAT_CHANGED,
+  payload: chatId,
 });
 
 export default {
@@ -122,15 +110,12 @@ export default {
   chatDataRequest,
   chatDataSuccess,
   chatDataFailure,
-  chatsListRequest,
-  chatsListSuccess,
-  chatsListFailure,
-  chatsListUpdate,
   messageInputChange,
   messageSendRequest,
   messageSendSuccess,
   messageSendFailure,
-  subscribeToMessagesUpdates,
-  unsubscribeToMessagesUpdates,
   messagesUpdate,
+  moreMessagesRequest,
+  moreMessagesSuccess,
+  currentChatChange,
 };

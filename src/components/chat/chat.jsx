@@ -6,9 +6,9 @@ import UserInfo from '../user-info';
 import ChatWindow from '../chat-window';
 import actions from '../../store/actions/actions';
 
-const Chat = ({ getChatsList, getUserData }) => {
+const Chat = ({ getChatsData, getUserData }) => {
   useEffect(() => {
-    getChatsList();
+    getChatsData();
     getUserData();
   });
 
@@ -22,12 +22,12 @@ const Chat = ({ getChatsList, getUserData }) => {
 };
 
 Chat.propTypes = {
-  getChatsList: PropTypes.func.isRequired,
+  getChatsData: PropTypes.func.isRequired,
   getUserData: PropTypes.func.isRequired,
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  getChatsList: () => dispatch(actions.chatsListRequest()),
+  getChatsData: () => dispatch(actions.chatDataRequest()),
   getUserData: () => dispatch(actions.userDataRequest()),
 });
 

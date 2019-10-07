@@ -47,7 +47,4 @@ function* loginFlow() {
   }
 }
 
-export {
-  signUpUser,
-  loginFlow,
-};
+export { signUpUser, loginFlow };
