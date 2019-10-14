@@ -91,6 +91,10 @@ const moreMessagesSuccess = (messages) => ({
   type: actionTypes.MORE_MESSAGES_SUCCEED,
   payload: messages,
 });
+const moreMessagesFailed = (error) => ({
+  type: actionTypes.MORE_MESSAGES_FAILED,
+  error,
+});
 
 const currentChatChange = (chatId) => ({
   type: actionTypes.CURRENT_CHAT_CHANGED,
@@ -118,4 +122,5 @@ export default {
   moreMessagesRequest,
   moreMessagesSuccess,
   currentChatChange,
+  moreMessagesFailed,
 };

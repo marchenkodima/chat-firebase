@@ -26,8 +26,12 @@ function* loadMoreMessages(socket, id) {
   while (true) {
     const { payload: chatId } = yield take(actionTypes.MORE_MESSAGES_REQUESTED);
     if (chatId === id) {
-      const messages = yield call(socket.loadMore);
-      yield put(actions.moreMessagesSuccess(messages));
+      try {
+        const messages = yield call(socket.loadMore);
+        yield put(actions.moreMessagesSuccess(messages));
+      } catch (e) {
+        yield put(actions.moreMessagesFailed(e));
+      }
     }
   }
 }

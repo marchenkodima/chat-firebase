@@ -30,6 +30,7 @@ const messagesReducer = (state = initialState, action) => {
           ],
         },
       };
+    case actionTypes.MORE_MESSAGES_FAILED:
     default:
       return state;
   }

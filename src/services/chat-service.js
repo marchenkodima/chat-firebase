@@ -140,6 +140,7 @@ const loadMessages = (chatId) => {
         .startAfter(last)
         .limit(50)
         .get();
+      if (docs.length === 0) throw new Error('All messages received');
       last = docs[docs.length - 1];
       const messages = docs
         .map((doc) => ({

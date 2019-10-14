@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import MessageInput from '../message-input';
@@ -8,26 +8,46 @@ const ChatWindow = ({
   chat, messages, isLoaded, loadMoreMessages,
 }) => {
   useEffect(() => {
-    if (isLoaded) {
+    if (isLoaded && messages.length < 50) {
       loadMoreMessages(chat.id);
     }
-  }, [chat.id, isLoaded, loadMoreMessages]);
+  });
 
   if (!isLoaded) {
     return null;
   }
 
+  const scrollHandler = (e) => {
+    if (e.target.scrollTop === 0) {
+      loadMoreMessages(chat.id);
+    }
+  };
+
   const { name, avatar, users } = chat;
+
+  const Messages = () => {
+    const messagesRef = useRef(null);
+
+    useEffect(() => {
+      messagesRef.current.scrollTo(0, messagesRef.current.clientHeight);
+    });
+
+    return (
+      <div style={{ height: '400px', overflowY: 'scroll' }} onScroll={scrollHandler} ref={messagesRef}>
+        <ul>
+          {messages.map((message) => (
+            <li key={message.id}>{message.message}</li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
 
   return (
     <div>
       <p>{name}</p>
       <img src={avatar} alt="chatImage" />
-      <ul>
-        {messages.map((message) => (
-          <li key={message.id}>{message.message}</li>
-        ))}
-      </ul>
+      <Messages />
       <ul>
         {users.map((user) => (
           <li key={user}>{user}</li>
